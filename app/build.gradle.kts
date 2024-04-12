@@ -47,6 +47,7 @@ android {
 }
 
 dependencies {
+    val lifecycle_version = "2.7.0"
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -56,8 +57,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    // implementation("com.google.android.gms:play-services-location:21.2.0")
-    implementation("com.google.android.gms:play-services-location:20.0.0")
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
