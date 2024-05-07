@@ -65,20 +65,19 @@ fun GreetingPreview() {
 
 @Composable
 fun LocationFetcher(locationService: LocationService) {
-    var location by remember { mutableStateOf<Location?>(null) }
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var location by remember { mutableStateOf<Location?>(null) }
+    val continuousLocation = remember { locationService.locationUpdates }.collectAsState(initial = null)
 
-    // This observer ensures we only listen for location while in the STARTED state.
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
-                // Trigger location fetching when the lifecycle is STARTED
-                // It is safe to launch coroutines here because it's a side effect of the lifecycle
                 lifecycleOwner.lifecycleScope.launch {
-                    val loc = locationService.getLocation(context)
-                    location = loc
+                    locationService.getLocationContinuous(context)
                 }
+            } else if (event == Lifecycle.Event.ON_STOP) {
+                // Optional: Stop location updates if needed
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -93,14 +92,26 @@ fun LocationFetcher(locationService: LocationService) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TextButton(onClick = {
-            // Request permission and then trigger a re-composition which will refetch the location
-            // This should probably be replaced with a proper permission request as shown before
-            // but for simplicity, we are just triggering a recomposition here
+            lifecycleOwner.lifecycleScope.launch {
+                location = locationService.getLocation(context)
+            }
         }) {
             Text("Get Location")
         }
+        TextButton(onClick = {
+            // This button is just to demonstrate triggering the start of continuous updates
+            lifecycleOwner.lifecycleScope.launch {
+                locationService.getLocationContinuous(context)
+            }
+        }) {
+            Text("Start Continuous Location Updates")
+        }
+        continuousLocation.value?.let { loc ->
+            Text("Continuous Latitude: ${loc.latitude}, Longitude: ${loc.longitude}")
+        }
         location?.let { loc ->
-            Text("Latitude: ${loc.latitude}, Longitude: ${loc.longitude}")
+            Text("Single Fetch Latitude: ${loc.latitude}, Longitude: ${loc.longitude}")
         }
     }
 }
+
